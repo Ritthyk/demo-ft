@@ -180,6 +180,13 @@
     e.stopPropagation();
     }, { passive: false });
 
+    ["touchstart", "touchmove", "touchend", "mousedown", "mousemove", "mouseup"].forEach(evt => {
+    container.addEventListener(evt, function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }, { passive: false });
+    });
+
     // Drag logic
     let isDragging = false;
     let offsetX, offsetY;
