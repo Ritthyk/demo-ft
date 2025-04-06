@@ -30,8 +30,8 @@
 
         img {
             width: 100%;
-            max-width: 400px;
-            max-height: 400px;
+            max-width: 640px;
+            max-height: 640px;
             border-radius: 10px;
             margin-top: 10px;
             box-shadow: 0 0 20px rgba(211, 164, 255, 0.6);
@@ -64,8 +64,8 @@
             align-items: center;
             align-content: center;
             width: 100%;
-            max-width: 400px;
-            max-height: 400px;
+            max-width: 640px;
+            max-height: 640px;
             margin: 20px auto;
             overflow: hidden;
             border: 3px solid #d3a4ff;
@@ -75,8 +75,8 @@
 
         ##uploadedImage {
             width: 100%;
-            max-width: 400px;
-            max-height: 400px;
+            max-width: 640px;
+            max-height: 640px;
             object-fit: contain;
             display: block;
         }
@@ -195,10 +195,10 @@
         img.onload = () => {
             // Resize the image and container to 640x640
             img.style.width = "640px";
-            img.style.height = "480px";
+            img.style.height = "640px";
 
             container.style.width = "640px";
-            container.style.height = "480px";
+            container.style.height = "640px";
 
             // Set default resize box size
             const boxW = 85;
@@ -208,7 +208,7 @@
 
             // Center the resize box
             resizeBox.style.left = (640 / 2 - boxW / 2) + "px";
-            resizeBox.style.top = (480 / 2 - boxH / 2) + "px";
+            resizeBox.style.top = (640 / 2 - boxH / 2) + "px";
         };
 
 
@@ -237,8 +237,11 @@
             const rect = container.getBoundingClientRect();
             const x = e.clientX - rect.left - offsetX;
             const y = e.clientY - rect.top - offsetY;
-            resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-            resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
+            const maxLeft = container.clientWidth - resizeBox.offsetWidth;
+            const maxTop = container.clientHeight - resizeBox.offsetHeight;
+            resizeBox.style.left = `${Math.max(0, Math.min(x, maxLeft))}px`;
+            resizeBox.style.top = `${Math.max(0, Math.min(y, maxTop))}px`;
+
         });
         document.addEventListener("touchmove", e => {
             if (!isDragging) return;
@@ -247,8 +250,11 @@
             const x = touch.clientX - rect.left - offsetX;
             const y = touch.clientY - rect.top - offsetY;
 
-            resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-            resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
+            const maxLeft = container.clientWidth - resizeBox.offsetWidth;
+            const maxTop = container.clientHeight - resizeBox.offsetHeight;
+            resizeBox.style.left = `${Math.max(0, Math.min(x, maxLeft))}px`;
+            resizeBox.style.top = `${Math.max(0, Math.min(y, maxTop))}px`;
+
 
             e.preventDefault(); // Prevent scrolling
         }, { passive: false });
