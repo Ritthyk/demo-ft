@@ -1,326 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Adjust Credit Card Box</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1e1b3a, #2a185f);
-      color: #ffffff;
-      text-align: center;
-      overflow-x: hidden;
-      position: relative;
-    }
-    h1 {
-      font-size: 2em;
-      margin-top: 20px;
-      color: #d3a4ff;
-      text-shadow: 0 0 10px #d3a4ff;
-    }
-    h2 {
-      font-size: 1.2em;
-      margin-top: 20px;
-      color: #ffffff;
-      text-shadow: 0 0 10px #d3a4ff;
-    }
-    body, html {
-        touch-action: none; /* Disable gestures like pinch-zoom inside your app */
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adjust Credit Card Box</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1b3a, #2a185f);
+            color: #ffffff;
+            text-align: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-top: 20px;
+            color: #d3a4ff;
+            text-shadow: 0 0 10px #d3a4ff;
+        }
+
+        h2 {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #ffffff;
+            text-shadow: 0 0 10px #d3a4ff;
         }
 
         img {
-        pointer-events: none; /* Prevent accidental interaction with the image */
+            width: 100%;
+            max-width: 400px;
+            border: 3px solid #d3a4ff;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 0 20px rgba(211, 164, 255, 0.6);
         }
 
-    .container, #resizeBox, img {
-        user-select: none;
-        -webkit-user-drag: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
+        canvas {
+            display: none;
         }
 
-    img {
-      width: 100%;
-      max-width: 400px;
-      border: 3px solid #d3a4ff;
-      border-radius: 10px;
-      margin-top: 10px;
-      box-shadow: 0 0 20px rgba(211, 164, 255, 0.6);
-    }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #d3a4ff;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(211, 164, 255, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
-    canvas {
-      display: none;
-    }
+            button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 25px rgba(211, 164, 255, 0.7);
+            }
 
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: #d3a4ff;
-      border: none;
-      color: #000;
-      font-weight: bold;
-      border-radius: 30px;
-      box-shadow: 0 4px 15px rgba(211, 164, 255, 0.4);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+        .container {
+            position: relative;
+            display: inline-block;
+        }
 
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 25px rgba(211, 164, 255, 0.7);
-    }
+        #uploadedImage {
+            display: block;
+            max-width: 100%;
+        }
 
-    .container {
-      position: relative;
-      display: inline-block;
-      touch-action: none;
-    }
+        #resizeBox {
+            position: absolute;
+            border: 2px dashed #ff79ff;
+            cursor: move;
+            box-sizing: border-box;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(255, 121, 255, 0.5);
+        }
 
-    #uploadedImage {
-      display: block;
-      max-width: 100%;
-    }
+        .handle {
+            width: 10px;
+            height: 10px;
+            background: #ff79ff;
+            position: absolute;
+        }
 
-    #resizeBox {
-      position: absolute;
-      border: 2px dashed #ff79ff;
-      cursor: move;
-      box-sizing: border-box;
-      touch-action: none;
-      border-radius: 5px;
-      box-shadow: 0 0 15px rgba(255, 121, 255, 0.5);
-    }
+            .handle.sw, .handle.nw, .handle.ne {
+                display: none;
+            }
 
-    .handle {
-      width: 10px;
-      height: 10px;
-      background: #ff79ff;
-      position: absolute;
-    }
+            .handle.se {
+                bottom: -5px;
+                right: -5px;
+                cursor: nwse-resize;
+            }
 
-    .handle.sw, .handle.nw, .handle.ne { display: none;}
-    .handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        #scaleResult {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #d3a4ff;
+        }
 
-    #scaleResult {
-      margin-top: 20px;
-      font-weight: bold;
-      color: #d3a4ff;
-    }
+        .floating-icon {
+            position: absolute;
+            width: 40px;
+            opacity: 0.2;
+            animation: float 20s infinite linear;
+            z-index: -1;
+        }
 
-    .floating-icon {
-      position: absolute;
-      width: 40px;
-      opacity: 0.2;
-      animation: float 20s infinite linear;
-      z-index: -1;
-    }
+        @keyframes float {
+            from {
+                transform: translateY(100vh) rotate(0deg);
+            }
 
-    @keyframes float {
-      from {
-        transform: translateY(100vh) rotate(0deg);
-      }
-      to {
-        transform: translateY(-100vh) rotate(360deg);
-      }
-    }
+            to {
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
 
-    .icon1 { left: 5%; animation-delay: 0s; }
-    .icon2 { left: 25%; animation-delay: 5s; }
-    .icon3 { left: 50%; animation-delay: 10s; }
-    .icon4 { left: 75%; animation-delay: 15s; }
-    .icon5 { left: 90%; animation-delay: 2s; }
-  </style>
+        .icon1 {
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .icon2 {
+            left: 25%;
+            animation-delay: 5s;
+        }
+
+        .icon3 {
+            left: 50%;
+            animation-delay: 10s;
+        }
+
+        .icon4 {
+            left: 75%;
+            animation-delay: 15s;
+        }
+
+        .icon5 {
+            left: 90%;
+            animation-delay: 2s;
+        }
+    </style>
 </head>
 
 <body>
     <h1>AI Smart Fit</h1>
-  <h2>Adjust the Rectangle to Fit the Credit Card</h2>
+    <h2>Adjust the Rectangle to Fit the Credit Card</h2>
 
-  <div class="container" id="container">
-    <img id="uploadedImage" draggable="false"/>
-    <div id="resizeBox">
-      <div class="handle nw"></div>
-      <div class="handle ne"></div>
-      <div class="handle sw"></div>
-      <div class="handle se"></div>
+    <div class="container" id="container">
+        <img id="uploadedImage" />
+        <div id="resizeBox">
+            <div class="handle nw"></div>
+            <div class="handle ne"></div>
+            <div class="handle sw"></div>
+            <div class="handle se"></div>
+        </div>
     </div>
-  </div>
 
-  <div id="scaleResult"></div>
-  <button onclick="calculateScale()">Calculate Scale</button>
+    <div id="scaleResult"></div>
+    <button onclick="calculateScale()">Calculate Scale</button>
 
-  <!-- Floating Tech Icons -->
-  <img src="https://cdn-icons-png.flaticon.com/512/2721/2721286.png" class="floating-icon icon1" />
-  <img src="https://cdn-icons-png.flaticon.com/512/1055/1055687.png" class="floating-icon icon2" />
-  <img src="https://cdn-icons-png.flaticon.com/512/929/929566.png" class="floating-icon icon3" />
-  <img src="https://cdn-icons-png.flaticon.com/512/3468/3468330.png" class="floating-icon icon4" />
-  <img src="https://cdn-icons-png.flaticon.com/512/2913/2913955.png" class="floating-icon icon5" />
+    <!-- Floating Tech Icons -->
+    <img src="https://cdn-icons-png.flaticon.com/512/2721/2721286.png" class="floating-icon icon1" />
+    <img src="https://cdn-icons-png.flaticon.com/512/1055/1055687.png" class="floating-icon icon2" />
+    <img src="https://cdn-icons-png.flaticon.com/512/929/929566.png" class="floating-icon icon3" />
+    <img src="https://cdn-icons-png.flaticon.com/512/3468/3468330.png" class="floating-icon icon4" />
+    <img src="https://cdn-icons-png.flaticon.com/512/2913/2913955.png" class="floating-icon icon5" />
 
-  <script>
-    const img = document.getElementById("uploadedImage");
-    const resizeBox = document.getElementById("resizeBox");
-    const container = document.getElementById("container");
+    <script>
+        const img = document.getElementById("uploadedImage");
+        const resizeBox = document.getElementById("resizeBox");
+        const container = document.getElementById("container");
 
-    const imgData = localStorage.getItem("capturedImage");
-    const imgW = parseInt(localStorage.getItem("imageWidth"));
-    const imgH = parseInt(localStorage.getItem("imageHeight"));
+        const imgData = localStorage.getItem("capturedImage");
+        const imgW = parseInt(localStorage.getItem("imageWidth"));
+        const imgH = parseInt(localStorage.getItem("imageHeight"));
 
-    img.src = imgData;
-    img.onload = () => {
-      img.style.width = imgW + "px";
-      img.style.height = imgH + "px";
+        img.src = imgData;
+        img.onload = () => {
+            img.style.width = imgW + "px";
+            img.style.height = imgH + "px";
 
-      container.style.width = imgW + "px";
-      container.style.height = imgH + "px";
+            container.style.width = imgW + "px";
+            container.style.height = imgH + "px";
 
-      resizeBox.style.width = "85px";
-      resizeBox.style.height = "50px";
-      resizeBox.style.left = (imgW / 2 - 42) + "px";
-      resizeBox.style.top = (imgH / 2 - 25) + "px";
-    };
+            resizeBox.style.width = "85px";
+            resizeBox.style.height = "50px";
+            resizeBox.style.left = (imgW / 2 - 42) + "px";
+            resizeBox.style.top = (imgH / 2 - 25) + "px";
+        };
 
-    // Prevent default touch/mouse drag/scroll behavior inside the container
-    container.addEventListener("touchmove", e => {
-    e.stopPropagation();
-    e.preventDefault();
-    }, { passive: false });
+        // Drag logic
+        let isDragging = false;
+        let offsetX, offsetY;
 
-    container.addEventListener("mousedown", e => {
-    e.stopPropagation();
-    });
-
-    container.addEventListener("touchstart", e => {
-    e.stopPropagation();
-    }, { passive: false });
-    // Prevent dragging or scrolling the page when interacting inside the container
-    ["touchstart", "touchmove", "touchend", "mousedown", "mousemove", "mouseup"].forEach(evt => {
-    container.addEventListener(evt, function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }, { passive: false });
-    });
-
-
-    // Drag logic
-    let isDragging = false;
-    let offsetX, offsetY;
-
-    resizeBox.addEventListener("mousedown", e => {
-      if (e.target.classList.contains("handle")) return;
-      isDragging = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
-    });
-    resizeBox.addEventListener("touchstart", e => {
-    if (e.target.classList.contains("handle")) return;
-    isDragging = true;
-    const touch = e.touches[0];
-    const rect = resizeBox.getBoundingClientRect();
-    offsetX = touch.clientX - rect.left;
-    offsetY = touch.clientY - rect.top;
-    e.preventDefault();
-    });
-
-    document.addEventListener("mousemove", e => {
-      if (!isDragging) return;
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left - offsetX;
-      const y = e.clientY - rect.top - offsetY;
-      resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-      resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
-    });
-    document.addEventListener("touchmove", e => {
-    if (!isDragging) return;
-    const touch = e.touches[0];
-    const rect = container.getBoundingClientRect();
-    const x = touch.clientX - rect.left - offsetX;
-    const y = touch.clientY - rect.top - offsetY;
-
-    resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-    resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
-
-    e.preventDefault(); // Prevent scrolling
-    });
-
-
-    document.addEventListener("mouseup", () => isDragging = false);
-    document.addEventListener("touchend", () => isDragging = false);
-
-    // Resize logic
-    let currentHandle = null;
-    let startX, startY, startW, startH;
-
-    const handles = document.querySelectorAll(".handle");
-    handles.forEach(handle => {
-      handle.addEventListener("mousedown", e => {
-        e.stopPropagation();
-        currentHandle = e.target.classList[1];
-        startX = e.clientX;
-        startY = e.clientY;
-        startW = resizeBox.offsetWidth;
-        startH = resizeBox.offsetHeight;
-        isDragging = false;
-        document.addEventListener("mousemove", resizeBoxHandler);
-        document.addEventListener("mouseup", () => {
-          currentHandle = null;
-          document.removeEventListener("mousemove", resizeBoxHandler);
-        }, { once: true });
-      });
-      handle.addEventListener("touchstart", e => {
-        e.stopPropagation();
-        const touch = e.touches[0];
-        currentHandle = e.target.classList[1];
-        startX = touch.clientX;
-        startY = touch.clientY;
-        startW = resizeBox.offsetWidth;
-        startH = resizeBox.offsetHeight;
-        isDragging = false;
-
-        document.addEventListener("touchmove", resizeBoxHandler, { passive: false });
-        document.addEventListener("touchend", () => {
-            currentHandle = null;
-            document.removeEventListener("touchmove", resizeBoxHandler);
-        }, { once: true });
-
-        e.preventDefault();
+        resizeBox.addEventListener("mousedown", e => {
+            if (e.target.classList.contains("handle")) return;
+            isDragging = true;
+            offsetX = e.offsetX;
+            offsetY = e.offsetY;
+        });
+        resizeBox.addEventListener("touchstart", e => {
+            if (e.target.classList.contains("handle")) return;
+            isDragging = true;
+            const touch = e.touches[0];
+            const rect = resizeBox.getBoundingClientRect();
+            offsetX = touch.clientX - rect.left;
+            offsetY = touch.clientY - rect.top;
+            e.preventDefault();
         });
 
-    });
+        document.addEventListener("mousemove", e => {
+            if (!isDragging) return;
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left - offsetX;
+            const y = e.clientY - rect.top - offsetY;
+            resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
+            resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
+        });
+        document.addEventListener("touchmove", e => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const rect = container.getBoundingClientRect();
+            const x = touch.clientX - rect.left - offsetX;
+            const y = touch.clientY - rect.top - offsetY;
 
-    function resizeBoxHandler(e) {
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const dx = clientX - startX;
-        const dy = clientY - startY;
-        let newWidth = startW;
-        let newHeight = startH;
+            resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
+            resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
 
-        if (currentHandle === "se") {
-            newWidth += dx;
-            newHeight += dy;
-            resizeBox.style.width = `${Math.max(10, newWidth)}px`;
-            resizeBox.style.height = `${Math.max(10, newHeight)}px`;
+            e.preventDefault(); // Prevent scrolling
+        }, { passive: false });
+
+
+        document.addEventListener("mouseup", () => isDragging = false);
+        document.addEventListener("touchend", () => isDragging = false);
+
+        // Resize logic
+        let currentHandle = null;
+        let startX, startY, startW, startH;
+
+        const handles = document.querySelectorAll(".handle");
+        handles.forEach(handle => {
+            handle.addEventListener("mousedown", e => {
+                e.stopPropagation();
+                currentHandle = e.target.classList[1];
+                startX = e.clientX;
+                startY = e.clientY;
+                startW = resizeBox.offsetWidth;
+                startH = resizeBox.offsetHeight;
+                isDragging = false;
+                document.addEventListener("mousemove", resizeBoxHandler);
+                document.addEventListener("mouseup", () => {
+                    currentHandle = null;
+                    document.removeEventListener("mousemove", resizeBoxHandler);
+                }, { once: true });
+            });
+            handle.addEventListener("touchstart", e => {
+                e.stopPropagation();
+                const touch = e.touches[0];
+                currentHandle = e.target.classList[1];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startW = resizeBox.offsetWidth;
+                startH = resizeBox.offsetHeight;
+                isDragging = false;
+
+                document.addEventListener("touchmove", resizeBoxHandler, { passive: false });
+                document.addEventListener("touchend", () => {
+                    currentHandle = null;
+                    document.removeEventListener("touchmove", resizeBoxHandler);
+                }, { once: true });
+
+                e.preventDefault();
+            });
+
+        });
+
+        function resizeBoxHandler(e) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            let newWidth = startW;
+            let newHeight = startH;
+
+            if (currentHandle === "se") {
+                newWidth += dx;
+                newHeight += dy;
+                resizeBox.style.width = `${Math.max(10, newWidth)}px`;
+                resizeBox.style.height = `${Math.max(10, newHeight)}px`;
+            }
+
+            e.preventDefault();
         }
 
-        e.preventDefault();
+        function calculateScale() {
+            const creditCardWidthMM = 85.6;
+            const pixelWidth = resizeBox.offsetWidth;
+            const scale = creditCardWidthMM / pixelWidth;
+
+            document.getElementById("scaleResult").innerText =
+                `Scale Factor: ${scale.toFixed(4)} mm/pixel`;
+
+            localStorage.setItem("scaleFactor", scale);
+            localStorage.setItem("boxLeft", resizeBox.style.left);
+            localStorage.setItem("boxTop", resizeBox.style.top);
+
+            window.location.href = "measure.html";
         }
-
-    function calculateScale() {
-      const creditCardWidthMM = 85.6;
-      const pixelWidth = resizeBox.offsetWidth;
-      const scale = creditCardWidthMM / pixelWidth;
-
-      document.getElementById("scaleResult").innerText =
-        `Scale Factor: ${scale.toFixed(4)} mm/pixel`;
-
-      localStorage.setItem("scaleFactor", scale);
-      localStorage.setItem("boxLeft", resizeBox.style.left);
-      localStorage.setItem("boxTop", resizeBox.style.top);
-
-      window.location.href = "measure.html";
-    }
-  </script>
+    </script>
 </body>
 </html>
