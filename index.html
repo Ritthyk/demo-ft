@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Smart Fit</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e1b3a, #2a185f);
+      color: #ffffff;
+      text-align: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    h2 {
+      font-size: 2em;
+      margin-top: 20px;
+      color: #d3a4ff;
+      text-shadow: 0 0 10px #d3a4ff;
+    }
+
+    video, img {
+      width: 100%;
+      max-width: 400px;
+      border: 3px solid #d3a4ff;
+      border-radius: 10px;
+      margin-top: 10px;
+      box-shadow: 0 0 20px rgba(211, 164, 255, 0.6);
+    }
+
+    canvas {
+      display: none;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      background-color: #d3a4ff;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(211, 164, 255, 0.4);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(211, 164, 255, 0.7);
+    }
+
+    .drop-area {
+      border: 2px dashed #d3a4ff;
+      border-radius: 15px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      margin: 20px auto;
+      color: #d3a4ff;
+      background-color: rgba(211, 164, 255, 0.05);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .drop-area.dragover {
+      background-color: rgba(211, 164, 255, 0.1);
+      border-color: #ffffff;
+    }
+
+    .floating-icon {
+      position: absolute;
+      width: 40px;
+      opacity: 0.2;
+      animation: float 20s infinite linear;
+      z-index: -1;
+    }
+
+    @keyframes float {
+      from {
+        transform: translateY(100vh) rotate(0deg);
+      }
+      to {
+        transform: translateY(-100vh) rotate(360deg);
+      }
+    }
+
+    .icon1 { left: 5%; animation-delay: 0s; }
+    .icon2 { left: 25%; animation-delay: 5s; }
+    .icon3 { left: 50%; animation-delay: 10s; }
+    .icon4 { left: 75%; animation-delay: 15s; }
+    .icon5 { left: 90%; animation-delay: 2s; }
+  </style>
+</head>
+
+<!-- Floating Tech Icons -->
+<img src="https://cdn-icons-png.flaticon.com/512/2721/2721286.png" class="floating-icon icon1" />
+<img src="https://cdn-icons-png.flaticon.com/512/1055/1055687.png" class="floating-icon icon2" />
+<img src="https://cdn-icons-png.flaticon.com/512/929/929566.png" class="floating-icon icon3" />
+<img src="https://cdn-icons-png.flaticon.com/512/3468/3468330.png" class="floating-icon icon4" />
+<img src="https://cdn-icons-png.flaticon.com/512/2913/2913955.png" class="floating-icon icon5" />
+
+<body>
+
+  <h2>AI Smart Fit</h2>
+
+  <div>
+    <button onclick="startCamera()">Start Webcam</button>
+    <button onclick="captureImage()">Capture Image</button>
+    <input type="file" accept="image/*" id="uploadInput" style="
+      margin: 10px;
+      padding: 10px 20px;
+      background-color: #d3a4ff;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(211, 164, 255, 0.4);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;" />
+  </div>
+
+  <div class="drop-area" id="dropArea">
+    Drag and Drop an Image Here
+  </div>
+
+  <video id="video" autoplay></video>
+  <canvas id="canvas"></canvas>
+  <img id="previewImage" style="display:none;" />
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const uploadInput = document.getElementById("uploadInput");
+    const previewImage = document.getElementById("previewImage");
+    const dropArea = document.getElementById("dropArea");
+
+    let stream = null;
+
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(s => {
+          stream = s;
+          video.srcObject = stream;
+        })
+        .catch(err => alert("Error accessing camera: " + err));
+    }
+
+    function captureImage() {
+      if (!stream) {
+        alert("Please start the webcam first.");
+        return;
+      }
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+      const imageData = canvas.toDataURL("image/png");
+      localStorage.setItem("capturedImage", imageData);
+      localStorage.setItem("imageWidth", videoWidth);
+      localStorage.setItem("imageHeight", videoHeight);
+
+      window.location.href = "adjust.html";
+    }
+
+    uploadInput.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith("image/")) {
+        loadImage(file);
+      }
+    });
+
+    dropArea.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropArea.classList.add("dragover");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+      dropArea.classList.remove("dragover");
+    });
+
+    dropArea.addEventListener("drop", e => {
+      e.preventDefault();
+      dropArea.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        loadImage(file);
+      }
+    });
+
+    function loadImage(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          localStorage.setItem("capturedImage", reader.result);
+          localStorage.setItem("imageWidth", img.naturalWidth);
+          localStorage.setItem("imageHeight", img.naturalHeight);
+          window.location.href = "adjust.html";
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+
+</body>
+</html>

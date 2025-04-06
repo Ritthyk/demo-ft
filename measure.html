@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Measure Shoulder Length</title>
+
+  <!-- MediaPipe and TensorFlow -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1e1b3a, #2a185f);
+  color: #ffffff;
+  overflow-x: hidden;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+
+    h2 {
+      font-size: 2em;
+      margin-top: 20px;
+      color: #d3a4ff;
+      text-shadow: 0 0 10px #d3a4ff;
+    }
+
+    img {
+      width: 100%;
+      max-width: 400px;
+      border: 3px solid #d3a4ff;
+      border-radius: 10px;
+      margin-top: 10px;
+      box-shadow: 0 0 20px rgba(211, 164, 255, 0.6);
+    }
+
+
+    canvas {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: none;
+      max-width: 100%;
+      height: auto;
+    }
+
+    #resultContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  font-size: 20px;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #d3a4ff;
+  border-radius: 15px;
+  max-width: 600px;
+  white-space: pre-line;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(211, 164, 255, 0.4);
+  backdrop-filter: blur(10px);
+  margin-top: 20px;
+}
+
+#shoulderResult {
+  font-size: 20px;
+  text-align: center;
+  white-space: pre-line;
+  color: #ffffff;
+  
+}
+
+#sizeLabel {
+  font-size: 64px;
+  font-weight: 700;
+  color: #d3a4ff;
+  text-shadow: 0 4px 16px rgba(211, 164, 255, 0.6);
+  padding: 0 20px;
+}
+
+
+
+    .container {
+      position: relative;
+      display: inline-block;
+    }
+
+    
+    .floating-icon {
+      position: absolute;
+      width: 40px;
+      opacity: 0.2;
+      animation: float 20s infinite linear;
+      z-index: -1;
+    }
+
+    @keyframes float {
+      from {
+        transform: translateY(100vh) rotate(0deg);
+      }
+      to {
+        transform: translateY(-100vh) rotate(360deg);
+      }
+    }
+
+    .icon1 { left: 5%; animation-delay: 0s; }
+    .icon2 { left: 25%; animation-delay: 5s; }
+    .icon3 { left: 50%; animation-delay: 10s; }
+    .icon4 { left: 75%; animation-delay: 15s; }
+    .icon5 { left: 90%; animation-delay: 2s; }
+
+  </style>
+</head>
+<body>
+
+  <h2>Measurements</h2>
+  <canvas id="canvas"></canvas>
+  <div id="resultContainer">
+    <p id="shoulderResult">Shoulder Length: Not measured</p>
+    <div id="sizeLabel">Size</div>
+  </div>
+  
+
+  <img src="https://cdn-icons-png.flaticon.com/512/2721/2721286.png" class="floating-icon icon1" />
+  <img src="https://cdn-icons-png.flaticon.com/512/1055/1055687.png" class="floating-icon icon2" />
+  <img src="https://cdn-icons-png.flaticon.com/512/929/929566.png" class="floating-icon icon3" />
+  <img src="https://cdn-icons-png.flaticon.com/512/3468/3468330.png" class="floating-icon icon4" />
+  <img src="https://cdn-icons-png.flaticon.com/512/2913/2913955.png" class="floating-icon icon5" />
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const scaleFactor = parseFloat(localStorage.getItem("scaleFactor")) || 1;
+    const image = new Image();
+    image.src = localStorage.getItem("capturedImage");
+
+    image.onload = function () {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+      detectShoulders(image);
+    };
+
+    async function detectShoulders(image) {
+      const pose = new Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
+      pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+
+      pose.onResults(results => {
+        if (!results.poseLandmarks) {
+          document.getElementById("shoulderResult").innerText = "No pose landmarks detected!";
+          return;
+        }
+
+        const landmarks = results.poseLandmarks;
+
+        const leftShoulder = landmarks[11];
+        const rightShoulder = landmarks[12];
+        const leftElbow = landmarks[13];
+        const leftWrist = landmarks[15];
+        const mouthLeft = landmarks[9];
+        const mouthRight = landmarks[10];
+        const leftHip = landmarks[23];
+
+        function toPixelCoords(landmark) {
+          return [landmark.x * image.width, landmark.y * image.height];
+        }
+
+        const [lx, ly] = toPixelCoords(leftShoulder);
+        const [rx, ry] = toPixelCoords(rightShoulder);
+        const [lex, ley] = toPixelCoords(leftElbow);
+        const [lwx, lwy] = toPixelCoords(leftWrist);
+        const [lhx, lhy] = toPixelCoords(leftHip);
+
+        const [mlx, mly] = toPixelCoords(mouthLeft);
+        const [mrx, mry] = toPixelCoords(mouthRight);
+        const midMouth = [(mlx + mrx) / 2, (mly + mry) / 2];
+        const midShoulder = [(lx + rx) / 2, (ly + ry) / 2];
+        const centerPoint = [(midMouth[0] + midShoulder[0]) / 2, (midMouth[1] + midShoulder[1]) / 2];
+
+        ctx.fillStyle = "red";
+        [lx, ly, rx, ry, lex, ley, lwx, lwy, centerPoint[0], centerPoint[1]].forEach((val, i, arr) => {
+          if (i % 2 === 0) {
+            ctx.beginPath();
+            ctx.arc(arr[i], arr[i + 1], 4, 0, 2 * Math.PI);
+            ctx.fill();
+          }
+        });
+
+        ctx.strokeStyle = "blue";
+        ctx.beginPath();
+        ctx.moveTo(lx, ly);
+        ctx.lineTo(centerPoint[0], centerPoint[1]);
+        ctx.lineTo(rx, ry);
+        ctx.stroke();
+
+        ctx.strokeStyle = "orange";
+        ctx.beginPath();
+        ctx.moveTo(lx, ly);
+        ctx.lineTo(lex, ley);
+        ctx.lineTo(lwx, lwy);
+        ctx.stroke();
+
+        ctx.strokeStyle = "green";
+        ctx.beginPath();
+        ctx.moveTo(lx, ly);
+        ctx.lineTo(lhx, lhy);
+        ctx.stroke();
+
+        function distance(x1, y1, x2, y2) {
+          return Math.hypot(x2 - x1, y2 - y1);
+        }
+        
+
+        const acrossShoulderPixelLength = distance(lx, ly, centerPoint[0], centerPoint[1]) + distance(centerPoint[0], centerPoint[1], rx, ry);
+        const sleevePixelLength = distance(lx, ly, lex, ley) + distance(lex, ley, lwx, lwy);
+        const frontPixelLength = distance(lx, ly, lhx, lhy);
+
+        const acrossShoulderReal = acrossShoulderPixelLength * scaleFactor * 0.03937008 + 2.5;
+        const sleeveRealLength = sleevePixelLength * scaleFactor * 0.03937008;
+        const frontRealLength = frontPixelLength * scaleFactor * 0.03937008;
+
+        let size = "";
+
+        if (
+        acrossShoulderReal <= 13.5 &&
+        sleeveRealLength <= 23 &&
+        frontRealLength <= 26
+        ) {
+        size = "XS";
+        } else if (
+        acrossShoulderReal <= 14.2 &&
+        sleeveRealLength <= 24 &&
+        frontRealLength <= 27
+        ) {
+        size = "S";
+        } else if (
+        acrossShoulderReal <= 15.75 &&
+        sleeveRealLength <= 25 &&
+        frontRealLength <= 28
+        ) {
+        size = "M";
+        } else if (
+        acrossShoulderReal <= 17.2 &&
+        sleeveRealLength <= 26 &&
+        frontRealLength <= 29
+        ) {
+        size = "L";
+        } else if (
+        acrossShoulderReal <= 18.5 &&
+        sleeveRealLength <= 27 &&
+        frontRealLength <= 30
+        ) {
+        size = "XL";
+        } else if (
+        acrossShoulderReal <= 19 &&
+        sleeveRealLength <= 28 &&
+        frontRealLength <= 31
+        ) {
+        size = "XXL";
+        } else {
+        size = "XXXL";
+        }
+
+        document.getElementById("shoulderResult").innerText =
+          `Across Shoulder Length: ${acrossShoulderReal.toFixed(2)} in\n` +
+          `Front Length: ${frontRealLength.toFixed(2)} in\n` +
+          `Sleeve Length: ${sleeveRealLength.toFixed(2)} in`;
+        document.getElementById("sizeLabel").innerText = size;
+
+      });
+      
+
+      await pose.initialize();
+      await pose.send({ image: image });
+    }
+  </script>
+
+</body>
+</html>
