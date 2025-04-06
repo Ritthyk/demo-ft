@@ -223,7 +223,7 @@
     resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
 
     e.preventDefault(); // Prevent scrolling
-    }, { passive: false });
+    });
 
 
     document.addEventListener("mouseup", () => isDragging = false);
@@ -259,7 +259,7 @@
         startH = resizeBox.offsetHeight;
         isDragging = false;
 
-        document.addEventListener("touchmove", resizeBoxHandler, { passive: false });
+        document.addEventListener("touchmove", resizeBoxHandler);
         document.addEventListener("touchend", () => {
             currentHandle = null;
             document.removeEventListener("touchmove", resizeBoxHandler);
