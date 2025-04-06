@@ -193,12 +193,12 @@
 
         img.src = imgData;
         img.onload = () => {
-            // Use actual image rendered dimensions
-            const renderedW = img.clientWidth;
-            const renderedH = img.clientHeight;
+            // Resize the image and container to 640x640
+            img.style.width = "640px";
+            img.style.height = "480px";
 
-            container.style.width = renderedW + "px";
-            container.style.height = renderedH + "px";
+            container.style.width = "640px";
+            container.style.height = "480px";
 
             // Set default resize box size
             const boxW = 85;
@@ -207,9 +207,10 @@
             resizeBox.style.height = boxH + "px";
 
             // Center the resize box
-            resizeBox.style.left = (renderedW / 2 - boxW / 2) + "px";
-            resizeBox.style.top = (renderedH / 2 - boxH / 2) + "px";
+            resizeBox.style.left = (640 / 2 - boxW / 2) + "px";
+            resizeBox.style.top = (480 / 2 - boxH / 2) + "px";
         };
+
 
         // Drag logic
         let isDragging = false;
