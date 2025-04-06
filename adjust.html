@@ -60,6 +60,7 @@
     .container {
       position: relative;
       display: inline-block;
+      touch-action: none;
     }
 
     #uploadedImage {
@@ -72,6 +73,7 @@
       border: 2px dashed #ff79ff;
       cursor: move;
       box-sizing: border-box;
+      touch-action: none;
       border-radius: 5px;
       box-shadow: 0 0 15px rgba(255, 121, 255, 0.5);
     }
@@ -86,11 +88,6 @@
     .handle.sw, .handle.nw, .handle.ne { display: none;}
     .handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
 
-    #resizeBox {
-      touch-action: none;
-    }
-
-    
     #scaleResult {
       margin-top: 20px;
       font-weight: bold;
@@ -171,18 +168,17 @@
 
     // Prevent default touch/mouse drag/scroll behavior inside the container
     container.addEventListener("touchmove", e => {
-      e.stopPropagation();
-      e.preventDefault();
-    }, { passive: false });
-    
-    container.addEventListener("mousedown", e => {
-      e.stopPropagation();
-    });
-    
-    container.addEventListener("touchstart", e => {
-      e.stopPropagation();
+    e.stopPropagation();
+    e.preventDefault();
     }, { passive: false });
 
+    container.addEventListener("mousedown", e => {
+    e.stopPropagation();
+    });
+
+    container.addEventListener("touchstart", e => {
+    e.stopPropagation();
+    }, { passive: false });
 
     // Drag logic
     let isDragging = false;
@@ -259,7 +255,7 @@
         startH = resizeBox.offsetHeight;
         isDragging = false;
 
-        document.addEventListener("touchmove", resizeBoxHandler);
+        document.addEventListener("touchmove", resizeBoxHandler, { passive: false });
         document.addEventListener("touchend", () => {
             currentHandle = null;
             document.removeEventListener("touchmove", resizeBoxHandler);
