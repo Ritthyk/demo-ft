@@ -25,6 +25,21 @@
       color: #ffffff;
       text-shadow: 0 0 10px #d3a4ff;
     }
+    body, html {
+        touch-action: none; /* Disable gestures like pinch-zoom inside your app */
+        }
+
+        img {
+        pointer-events: none; /* Prevent accidental interaction with the image */
+        }
+
+    .container, #resizeBox, img {
+        user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        }
 
     img {
       width: 100%;
@@ -124,7 +139,7 @@
   <h2>Adjust the Rectangle to Fit the Credit Card</h2>
 
   <div class="container" id="container">
-    <img id="uploadedImage" />
+    <img id="uploadedImage" draggable="false"/>
     <div id="resizeBox">
       <div class="handle nw"></div>
       <div class="handle ne"></div>
@@ -179,13 +194,14 @@
     container.addEventListener("touchstart", e => {
     e.stopPropagation();
     }, { passive: false });
-
+    // Prevent dragging or scrolling the page when interacting inside the container
     ["touchstart", "touchmove", "touchend", "mousedown", "mousemove", "mouseup"].forEach(evt => {
     container.addEventListener(evt, function(e) {
         e.stopPropagation();
         e.preventDefault();
     }, { passive: false });
     });
+
 
     // Drag logic
     let isDragging = false;
