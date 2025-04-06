@@ -141,138 +141,150 @@
   <img src="https://cdn-icons-png.flaticon.com/512/3468/3468330.png" class="floating-icon icon4" />
   <img src="https://cdn-icons-png.flaticon.com/512/2913/2913955.png" class="floating-icon icon5" />
 
-  <script>
-    const img = document.getElementById("uploadedImage");
-    const resizeBox = document.getElementById("resizeBox");
-    const container = document.getElementById("container");
+ <script>
+  const img = document.getElementById("uploadedImage");
+  const resizeBox = document.getElementById("resizeBox");
+  const container = document.getElementById("container");
 
-    const imgData = localStorage.getItem("capturedImage");
-    const imgW = parseInt(localStorage.getItem("imageWidth"));
-    const imgH = parseInt(localStorage.getItem("imageHeight"));
+  const imgData = localStorage.getItem("capturedImage");
+  const imgW = parseInt(localStorage.getItem("imageWidth"));
+  const imgH = parseInt(localStorage.getItem("imageHeight"));
 
-    img.src = imgData;
-    img.onload = () => {
-      img.style.width = imgW + "px";
-      img.style.height = imgH + "px";
+  img.src = imgData;
+  img.onload = () => {
+    img.style.width = imgW + "px";
+    img.style.height = imgH + "px";
 
-      container.style.width = imgW + "px";
-      container.style.height = imgH + "px";
+    container.style.width = imgW + "px";
+    container.style.height = imgH + "px";
 
-      resizeBox.style.width = "85px";
-      resizeBox.style.height = "50px";
-      resizeBox.style.left = (imgW / 2 - 42) + "px";
-      resizeBox.style.top = (imgH / 2 - 25) + "px";
-    };
-    // Drag logic for both mouse and touch
-let isDragging = false;
-let offsetX, offsetY;
+    resizeBox.style.width = "85px";
+    resizeBox.style.height = "50px";
+    resizeBox.style.left = (imgW / 2 - 42) + "px";
+    resizeBox.style.top = (imgH / 2 - 25) + "px";
+  };
 
-function startDrag(e) {
-  if (e.target.classList.contains("handle")) return;
-  isDragging = true;
-  const touch = e.touches ? e.touches[0] : e;
-  const rect = resizeBox.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-  offsetX = touch.clientX - rect.left;
-  offsetY = touch.clientY - rect.top;
+  // ---------------------------
+  // Drag logic (Mouse + Touch)
+  // ---------------------------
+  let isDragging = false;
+  let offsetX, offsetY;
 
-  e.preventDefault(); // prevent scrolling while dragging
-}
+  const startDrag = (x, y) => {
+    isDragging = true;
+    offsetX = x - resizeBox.offsetLeft;
+    offsetY = y - resizeBox.offsetTop;
+  };
 
-function drag(e) {
-  if (!isDragging) return;
-  const touch = e.touches ? e.touches[0] : e;
-  const rect = container.getBoundingClientRect();
-  const x = touch.clientX - rect.left - offsetX;
-  const y = touch.clientY - rect.top - offsetY;
-  resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-  resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
-}
+  const drag = (x, y) => {
+    if (!isDragging) return;
+    const rect = container.getBoundingClientRect();
+    const newX = x - rect.left - offsetX;
+    const newY = y - rect.top - offsetY;
+    resizeBox.style.left = `${Math.max(0, Math.min(newX, imgW - resizeBox.offsetWidth))}px`;
+    resizeBox.style.top = `${Math.max(0, Math.min(newY, imgH - resizeBox.offsetHeight))}px`;
+  };
 
-function endDrag() {
-  isDragging = false;
-}
+  resizeBox.addEventListener("mousedown", e => {
+    if (e.target.classList.contains("handle")) return;
+    startDrag(e.clientX, e.clientY);
+  });
 
-resizeBox.addEventListener("mousedown", startDrag);
-resizeBox.addEventListener("touchstart", startDrag);
+  document.addEventListener("mousemove", e => drag(e.clientX, e.clientY));
+  document.addEventListener("mouseup", () => isDragging = false);
 
-document.addEventListener("mousemove", drag);
-document.addEventListener("touchmove", drag);
+  // Touch support for drag
+  resizeBox.addEventListener("touchstart", e => {
+    if (e.target.classList.contains("handle")) return;
+    const touch = e.touches[0];
+    startDrag(touch.clientX, touch.clientY);
+  });
 
-document.addEventListener("mouseup", endDrag);
-document.addEventListener("touchend", endDrag);
+  document.addEventListener("touchmove", e => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    drag(touch.clientX, touch.clientY);
+  });
 
-    // Drag logic
+  document.addEventListener("touchend", () => isDragging = false);
 
-    resizeBox.addEventListener("mousedown", e => {
-      if (e.target.classList.contains("handle")) return;
-      isDragging = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
+  // -----------------------------
+  // Resize logic (Mouse + Touch)
+  // -----------------------------
+  let currentHandle = null;
+  let startX, startY, startW, startH;
+
+  const handles = document.querySelectorAll(".handle");
+  handles.forEach(handle => {
+    // Mouse
+    handle.addEventListener("mousedown", e => {
+      e.stopPropagation();
+      currentHandle = e.target.classList[1];
+      startX = e.clientX;
+      startY = e.clientY;
+      startW = resizeBox.offsetWidth;
+      startH = resizeBox.offsetHeight;
+      document.addEventListener("mousemove", resizeBoxHandler);
+      document.addEventListener("mouseup", () => {
+        currentHandle = null;
+        document.removeEventListener("mousemove", resizeBoxHandler);
+      }, { once: true });
     });
 
-    document.addEventListener("mousemove", e => {
-      if (!isDragging) return;
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left - offsetX;
-      const y = e.clientY - rect.top - offsetY;
-      resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-      resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
+    // Touch
+    handle.addEventListener("touchstart", e => {
+      e.stopPropagation();
+      const touch = e.touches[0];
+      currentHandle = e.target.classList[1];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      startW = resizeBox.offsetWidth;
+      startH = resizeBox.offsetHeight;
+      document.addEventListener("touchmove", resizeBoxTouchHandler);
+      document.addEventListener("touchend", () => {
+        currentHandle = null;
+        document.removeEventListener("touchmove", resizeBoxTouchHandler);
+      }, { once: true });
     });
+  });
 
-    document.addEventListener("mouseup", () => isDragging = false);
-
-    // Resize logic
-    let currentHandle = null;
-    let startX, startY, startW, startH;
-
-    const handles = document.querySelectorAll(".handle");
-    handles.forEach(handle => {
-      handle.addEventListener("mousedown", e => {
-        e.stopPropagation();
-        currentHandle = e.target.classList[1];
-        startX = e.clientX;
-        startY = e.clientY;
-        startW = resizeBox.offsetWidth;
-        startH = resizeBox.offsetHeight;
-        isDragging = false;
-        document.addEventListener("mousemove", resizeBoxHandler);
-        document.addEventListener("mouseup", () => {
-          currentHandle = null;
-          document.removeEventListener("mousemove", resizeBoxHandler);
-        }, { once: true });
-      });
-    });
-
-    function resizeBoxHandler(e) {
+  function resizeBoxHandler(e) {
+    if (currentHandle === "se") {
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      let newWidth = startW;
-      let newHeight = startH;
-
-      if (currentHandle === "se") {
-        newWidth += dx;
-        newHeight += dy;
-
-
-      resizeBox.style.width = `${Math.max(10, newWidth)}px`;
-      resizeBox.style.height = `${Math.max(10, newHeight)}px`;
+      resizeBox.style.width = `${Math.max(10, startW + dx)}px`;
+      resizeBox.style.height = `${Math.max(10, startH + dy)}px`;
     }
+  }
+
+  function resizeBoxTouchHandler(e) {
+    if (currentHandle === "se") {
+      const touch = e.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      resizeBox.style.width = `${Math.max(10, startW + dx)}px`;
+      resizeBox.style.height = `${Math.max(10, startH + dy)}px`;
     }
-    function calculateScale() {
-      const creditCardWidthMM = 85.6;
-      const pixelWidth = resizeBox.offsetWidth;
-      const scale = creditCardWidthMM / pixelWidth;
+  }
 
-      document.getElementById("scaleResult").innerText =
-        `Scale Factor: ${scale.toFixed(4)} mm/pixel`;
+  // --------------------
+  // Scale Calculation
+  // --------------------
+  function calculateScale() {
+    const creditCardWidthMM = 85.6;
+    const pixelWidth = resizeBox.offsetWidth;
+    const scale = creditCardWidthMM / pixelWidth;
 
-      localStorage.setItem("scaleFactor", scale);
-      localStorage.setItem("boxLeft", resizeBox.style.left);
-      localStorage.setItem("boxTop", resizeBox.style.top);
+    document.getElementById("scaleResult").innerText =
+      `Scale Factor: ${scale.toFixed(4)} mm/pixel`;
 
-      window.location.href = "measure.html";
-    }
-  </script>
+    localStorage.setItem("scaleFactor", scale);
+    localStorage.setItem("boxLeft", resizeBox.style.left);
+    localStorage.setItem("boxTop", resizeBox.style.top);
+
+    window.location.href = "measure.html";
+  }
+</script>
+
 </body>
 </html>
