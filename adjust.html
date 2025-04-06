@@ -155,6 +155,8 @@
             left: 90%;
             animation-delay: 2s;
         }
+        
+
     </style>
 </head>
 
@@ -183,6 +185,8 @@
     <img src="https://cdn-icons-png.flaticon.com/512/2913/2913955.png" class="floating-icon icon5" />
 
     <script>
+        
+
         const img = document.getElementById("uploadedImage");
         const resizeBox = document.getElementById("resizeBox");
         const container = document.getElementById("container");
@@ -327,7 +331,10 @@
             const pixelWidth = resizeBox.offsetWidth;
             const scale = creditCardWidthMM / pixelWidth;
 
+            
+
             document.getElementById("scaleResult").innerText =
+                //`Scale Factor: ${pixelWidth.toFixed(4)} mm/pixel`;
                 `Scale Factor: ${scale.toFixed(4)} mm/pixel`;
 
             localStorage.setItem("scaleFactor", scale);
