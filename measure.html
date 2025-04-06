@@ -40,7 +40,7 @@
 
     img {
       width: 100%;
-      max-width: 400px;
+      max-width: 640px;
       border: 3px solid #d3a4ff;
       border-radius: 10px;
       margin-top: 10px;
@@ -50,7 +50,7 @@
 
       canvas {
           width: 100%;
-          max-width: 400px;
+          max-width: 640px;
           border: 3px solid #d3a4ff;
           border-radius: 10px;
           margin-top: 10px;
@@ -152,12 +152,32 @@
     const image = new Image();
     image.src = localStorage.getItem("capturedImage");
 
-    image.onload = function () {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      ctx.drawImage(image, 0, 0, image.width, image.height);
-      detectShoulders(image);
-    };
+      image.onload = function () {
+          // Resize to a consistent resolution
+          const desiredWidth = 640;
+          const desiredHeight = 480;
+
+          // Set canvas dimensions
+          canvas.width = desiredWidth;
+          canvas.height = desiredHeight;
+
+          // Draw the image scaled
+          ctx.drawImage(image, 0, 0, desiredWidth, desiredHeight);
+
+          // Create a temporary canvas to pass resized image to MediaPipe
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = desiredWidth;
+          tempCanvas.height = desiredHeight;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(image, 0, 0, desiredWidth, desiredHeight);
+
+          const resizedImage = new Image();
+          resizedImage.onload = () => {
+              detectShoulders(resizedImage);
+          };
+          resizedImage.src = tempCanvas.toDataURL();
+      };
+
 
     async function detectShoulders(image) {
       const pose = new Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
@@ -238,7 +258,7 @@
         const sleevePixelLength = distance(lx, ly, lex, ley) + distance(lex, ley, lwx, lwy);
         const frontPixelLength = distance(lx, ly, lhx, lhy);
 
-        const acrossShoulderReal = acrossShoulderPixelLength * scaleFactor * 0.03937008 + 0.2;
+        const acrossShoulderReal = acrossShoulderPixelLength * scaleFactor * 0.03937008 + 2.5;
         const sleeveRealLength = sleevePixelLength * scaleFactor * 0.03937008;
         const frontRealLength = frontPixelLength * scaleFactor * 0.03937008;
 
