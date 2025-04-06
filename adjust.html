@@ -163,10 +163,46 @@
       resizeBox.style.left = (imgW / 2 - 42) + "px";
       resizeBox.style.top = (imgH / 2 - 25) + "px";
     };
+    // Drag logic for both mouse and touch
+let isDragging = false;
+let offsetX, offsetY;
+
+function startDrag(e) {
+  if (e.target.classList.contains("handle")) return;
+  isDragging = true;
+  const touch = e.touches ? e.touches[0] : e;
+  const rect = resizeBox.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  offsetX = touch.clientX - rect.left;
+  offsetY = touch.clientY - rect.top;
+
+  e.preventDefault(); // prevent scrolling while dragging
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  const touch = e.touches ? e.touches[0] : e;
+  const rect = container.getBoundingClientRect();
+  const x = touch.clientX - rect.left - offsetX;
+  const y = touch.clientY - rect.top - offsetY;
+  resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
+  resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
+}
+
+function endDrag() {
+  isDragging = false;
+}
+
+resizeBox.addEventListener("mousedown", startDrag);
+resizeBox.addEventListener("touchstart", startDrag);
+
+document.addEventListener("mousemove", drag);
+document.addEventListener("touchmove", drag);
+
+document.addEventListener("mouseup", endDrag);
+document.addEventListener("touchend", endDrag);
 
     // Drag logic
-    let isDragging = false;
-    let offsetX, offsetY;
 
     resizeBox.addEventListener("mousedown", e => {
       if (e.target.classList.contains("handle")) return;
