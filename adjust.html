@@ -175,10 +175,13 @@
       offsetY = e.offsetY;
     });
     resizeBox.addEventListener("touchstart", e => {
-      if (e.target.classList.contains("handle")) return;
-      isDragging = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
+    if (e.target.classList.contains("handle")) return;
+    isDragging = true;
+    const touch = e.touches[0];
+    const rect = resizeBox.getBoundingClientRect();
+    offsetX = touch.clientX - rect.left;
+    offsetY = touch.clientY - rect.top;
+    e.preventDefault();
     });
 
     document.addEventListener("mousemove", e => {
@@ -190,13 +193,18 @@
       resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
     });
     document.addEventListener("touchmove", e => {
-      if (!isDragging) return;
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left - offsetX;
-      const y = e.clientY - rect.top - offsetY;
-      resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
-      resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
-    });
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const rect = container.getBoundingClientRect();
+    const x = touch.clientX - rect.left - offsetX;
+    const y = touch.clientY - rect.top - offsetY;
+
+    resizeBox.style.left = `${Math.max(0, Math.min(x, imgW - resizeBox.offsetWidth))}px`;
+    resizeBox.style.top = `${Math.max(0, Math.min(y, imgH - resizeBox.offsetHeight))}px`;
+
+    e.preventDefault(); // Prevent scrolling
+    }, { passive: false });
+
 
     document.addEventListener("mouseup", () => isDragging = false);
     document.addEventListener("touchend", () => isDragging = false);
@@ -221,42 +229,45 @@
           document.removeEventListener("mousemove", resizeBoxHandler);
         }, { once: true });
       });
-      handle.addEventListener("touchdown", e => {
+      handle.addEventListener("touchstart", e => {
         e.stopPropagation();
+        const touch = e.touches[0];
         currentHandle = e.target.classList[1];
-        startX = e.clientX;
-        startY = e.clientY;
+        startX = touch.clientX;
+        startY = touch.clientY;
         startW = resizeBox.offsetWidth;
         startH = resizeBox.offsetHeight;
         isDragging = false;
-        document.addEventListener("mousemove", resizeBoxHandler);
-        document.addEventListener("touchmove", resizeBoxHandler);
-        document.addEventListener("mouseup", () => {
-          currentHandle = null;
-          document.removeEventListener("mousemove", resizeBoxHandler);
-        }, { once: true });
+
+        document.addEventListener("touchmove", resizeBoxHandler, { passive: false });
         document.addEventListener("touchend", () => {
-          currentHandle = null;
-          document.removeEventListener("touchmove", resizeBoxHandler);
+            currentHandle = null;
+            document.removeEventListener("touchmove", resizeBoxHandler);
         }, { once: true });
-      });
+
+        e.preventDefault();
+        });
+
     });
 
     function resizeBoxHandler(e) {
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      let newWidth = startW;
-      let newHeight = startH;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        let newWidth = startW;
+        let newHeight = startH;
 
-      if (currentHandle === "se") {
-        newWidth += dx;
-        newHeight += dy;
+        if (currentHandle === "se") {
+            newWidth += dx;
+            newHeight += dy;
+            resizeBox.style.width = `${Math.max(10, newWidth)}px`;
+            resizeBox.style.height = `${Math.max(10, newHeight)}px`;
+        }
 
+        e.preventDefault();
+        }
 
-      resizeBox.style.width = `${Math.max(10, newWidth)}px`;
-      resizeBox.style.height = `${Math.max(10, newHeight)}px`;
-    }
-    }
     function calculateScale() {
       const creditCardWidthMM = 85.6;
       const pixelWidth = resizeBox.offsetWidth;
