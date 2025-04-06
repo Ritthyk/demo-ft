@@ -169,6 +169,21 @@
       resizeBox.style.top = (imgH / 2 - 25) + "px";
     };
 
+    // Prevent default touch/mouse drag/scroll behavior inside the container
+    container.addEventListener("touchmove", e => {
+      e.stopPropagation();
+      e.preventDefault();
+    }, { passive: false });
+    
+    container.addEventListener("mousedown", e => {
+      e.stopPropagation();
+    });
+    
+    container.addEventListener("touchstart", e => {
+      e.stopPropagation();
+    }, { passive: false });
+
+
     // Drag logic
     let isDragging = false;
     let offsetX, offsetY;
