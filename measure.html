@@ -258,8 +258,8 @@
                 const frontPixelLength = distance(lx, ly, lhx, lhy);
 
                 const acrossShoulderReal = acrossShoulderPixelLength * scaleFactor * 0.03937008 + 2.5;
-                const sleeveRealLength = sleevePixelLength * scaleFactor * 0.03937008;
-                const frontRealLength = frontPixelLength * scaleFactor * 0.03937008;
+                const sleeveRealLength = sleevePixelLength * scaleFactor * 0.03937008 + 2;
+                const frontRealLength = frontPixelLength * scaleFactor * 0.03937008 + 7;
 
                 let size = "";
 
